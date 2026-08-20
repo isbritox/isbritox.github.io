@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Chosen Palette: Warm Hope & Solidarity (Neutral warm cream background #FAF8F5, Slate dark text #1E293B, Vincentian Blue #1E40AF, Hope Amber #D97706, Emerald Green #059669) -->
+    <!-- Application Structure Plan: 
+         1. Interactive Dashboard Header & Key Metrics: High-impact KPI cards displaying group size, active budget scenario goal (default R$ 209.088,00), amount raised so far (starts at R$ 0,00), remaining balance (R$ 209.088,00), and live progress percentage (0,0%). Tailored specifically for Patos de Minas (MG).
+         2. Dynamic Fundraising Progress Bar & Live Tracker: An interactive control widget at the top of the dashboard allowing instant updates, quick-add buttons (+R$ 500, +R$ 2.000, +R$ 10.000), and live recalculation across all tabs.
+         3. Navigation Tabs: Logical grouping into 'Visão Geral & KPIs', 'Simulador de Orçamento', 'Plano de Arrecadação', '15 Eventos Beneficentes', 'Empresas & ESG', 'Projeto Vicentino', and 'Cronograma & Logística'.
+         4. Dynamic Scenario Switcher: Allows switching between Minimal (A), Realistic (B), and Security (C) scenarios, dynamically updating Chart.js visual distributions, per-item table breakdown, and remaining target goals.
+         5. Interactive Event Explorer: Filterable & sortable matrix of 15 parish fundraising events with net profit calculations totaling R$ 166.400,00 adapted to Patos de Minas culture.
+         6. Dynamic Donation & Sponsorship Target Calculator: Converts total financial goal into practical quotas (donations, sponsorships, event tickets).
+         7. Vincentian Mission & ESG Focus: Clear positioning framework for Patos de Minas corporate sponsors (Cemil, Sicoob Credicopa, Sicoob Credipatos, Agronegócio Alto Paranaíba) and Suwon volunteer mission.
+         WHY THIS STRUCTURE: Starting with an initial budget of R$ 0,00 accurately reflects the launch of the project in Patos de Minas, turning this study into an active live tool for the parish committee to track every step of the journey to Seoul.
+    -->
+    <!-- Visualization & Content Choices:
+         - Progress Tracker Gauge: Custom Tailwind Progress Bar + JS Math -> Shows real-time % achieved vs target -> Dynamic update via input field or quick-add buttons -> Essential for active fundraising management.
+         - Cost Breakdown: Chart.js Doughnut Chart -> Visualizes budget categories per pilgrim -> Interactive scenario toggles -> Helps visualize where money goes -> Chart.js Canvas (NO SVG/Mermaid).
+         - Revenue Breakdown: Chart.js Bar Chart -> Visualizes income strategy (Events, Corporate, Donors, Parishes) -> Interactive target hover -> Demonstrates financial feasibility -> Chart.js Canvas (NO SVG/Mermaid).
+         - 15 Events Matrix: HTML Dynamic Table with JS Category Filters -> Categorizes events by ROI and investment -> Real-time search/filter -> Enables parish committee planning.
+         - Interactive Donation Calculator: JS dynamic math tool -> Shows exact breakdown of R$20, R$50, R$100 donations and corporate quotes needed -> Engages donors directly.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudo de Viabilidade & Arrecadação: Missão Vicentina JMJ Seul 2027 (Patos de Minas - MG)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #FAF8F5;
+            color: #1E293B;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 360px;
+            }
+        }
+        .tab-active {
+            border-bottom: 3px solid #1E40AF;
+            color: #1E40AF;
+            font-weight: 700;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-900 text-white font-bold text-xl px-3 py-2 rounded-lg tracking-wider flex items-center gap-2">
+                        <span>✝️</span> SSVP
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900 leading-tight">Missão Seul 2027</h1>
+                        <p class="text-xs text-slate-500">SSVP Patos de Minas-MG • 12 Vicentinos na Coreia do Sul</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-3">
+                    <div class="text-right">
+                        <span class="block text-[10px] uppercase font-bold text-slate-400">Arrecadado / Meta</span>
+                        <span id="header-progress-text" class="text-xs font-black text-emerald-700">R$ 0,00 / R$ 209.088,00</span>
+                    </div>
+                    <span id="header-pct-badge" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-200">
+                        0,0%
+                    </span>
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-semibold border border-blue-200">
+                        👥 12 Peregrinos
+                    </span>
+                </div>
+            </div>
+            
+            <!-- NAV TABS -->
+            <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto text-sm font-medium text-slate-600 border-t border-slate-100 py-1">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-active py-2 px-1 whitespace-nowrap">📊 Visão Geral & KPIs</button>
+                <button onclick="switchTab('orcamento')" id="tab-orcamento" class="py-2 px-1 whitespace-nowrap">💰 Orçamento Interativo</button>
+                <button onclick="switchTab('arrecadacao')" id="tab-arrecadacao" class="py-2 px-1 whitespace-nowrap">🤝 Plano de Captação</button>
+                <button onclick="switchTab('eventos')" id="tab-eventos" class="py-2 px-1 whitespace-nowrap">🎟️ 15 Eventos Beneficentes</button>
+                <button onclick="switchTab('esg')" id="tab-esg" class="py-2 px-1 whitespace-nowrap">🏢 Empresas & ESG (Patos)</button>
+                <button onclick="switchTab('missao')" id="tab-missao" class="py-2 px-1 whitespace-nowrap">✝️ Projeto Vicentino</button>
+                <button onclick="switchTab('cronograma')" id="tab-cronograma" class="py-2 px-1 whitespace-nowrap">📅 Cronograma & Logística</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- TAB 1: DASHBOARD / RESUMO EXECUTIVO -->
+        <section id="content-dashboard" class="space-y-8">
+            <div class="bg-blue-900 text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="bg-amber-400 text-blue-950 font-bold text-xs uppercase px-3 py-1 rounded-full">Estudo de Viabilidade & Acompanhamento de Metas</span>
+                    <h2 class="text-2xl md:text-4xl font-extrabold mt-3 leading-tight">Missão Jovem Vicentina: JMJ Seul 2027 + Extensão Turística</h2>
+                    <p class="mt-3 text-blue-100 text-sm md:text-base leading-relaxed">
+                        Análise profunda e viabilidade orçamentária para enviar 12 jovens vicentinos de <strong>Patos de Minas (MG)</strong> para a Coreia do Sul. O projeto engloba os Dias nas Dioceses, a semana oficial da JMJ (Pacote A1), voluntariado missionário em Suwon e uma semana extra de turismo cultural em Seul com hospedagem coletiva via Airbnb.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-4">
+                        <button onclick="switchTab('orcamento')" class="bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-5 py-2.5 rounded-lg text-sm transition">
+                            Explorar Simulador Orçamentário →
+                        </button>
+                        <button onclick="switchTab('arrecadacao')" class="bg-blue-800 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm border border-blue-700 transition">
+                            Ver Plano de Arrecadação
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTRODUCTORY PARAGRAPH REQUIREMENT -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">📌 Apresentação do Projeto & Objetivos Centrais</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Esta aplicação interativa foi desenvolvida para estruturar, auditar e acompanhar em tempo real a arrecadação e a viabilidade financeira da delegação vicentina de <strong>Patos de Minas (MG)</strong>. Com base em cotações reais e parâmetros oficiais da Arquidiocese de Seul, do Vaticano e de operadoras de transporte (incluindo o trecho terrestre de Patos de Minas ao Aeroporto de Brasília - BSB), este painel traduz os dados orçamentários em ferramentas dinâmicas de gestão comunitária. A viagem de aproximadamente 20 dias integra formação espiritual, serviço voluntário com a Família Vicentina na Coreia e intercâmbio cultural na Ásia.
+                </p>
+            </div>
+
+            <!-- LIVE FUNDRAISING PROGRESS TRACKER WIDGET -->
+            <div class="bg-white p-6 rounded-xl border border-emerald-200 card-shadow space-y-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
+                            📈 Termômetro de Arrecadação em Tempo Real
+                        </span>
+                        <h3 class="text-xl font-extrabold text-slate-900 mt-1">Progresso da Campanha em Patos de Minas</h3>
+                    </div>
+                    
+                    <!-- EDITABLE INPUT / CONTROLS -->
+                    <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <label for="input-raised" class="text-xs font-bold text-slate-600 uppercase">Arrecadado Hoje (R$):</label>
+                        <input id="input-raised" type="number" value="0" step="500" min="0" oninput="updateRaisedFromInput(this.value)" 
+                            class="bg-white border border-slate-300 font-extrabold text-emerald-800 text-base px-3 py-1.5 rounded-lg w-36 text-right focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- PROGRESS BAR -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs sm:text-sm font-bold">
+                        <span class="text-emerald-700 flex items-center gap-1">
+                            <span>✅</span> Arrecadado: <strong id="kpi-raised-bar" class="text-base font-black ml-1">R$ 0,00</strong>
+                        </span>
+                        <span class="text-blue-900" id="kpi-pct-text">0,0% da Meta</span>
+                        <span class="text-slate-500">
+                            Meta Total: <strong id="kpi-goal-bar" class="text-slate-900 ml-1">R$ 209.088,00</strong>
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-6 rounded-full overflow-hidden p-1 border border-slate-200">
+                        <div id="visual-progress-bar" class="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-white shadow-sm" style="width: 0%;">
+                            <span id="bar-pct-inner">0.0%</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 font-medium pt-1">
+                        <span>Início da Campanha (R$ 0,00)</span>
+                        <span class="text-amber-800 font-bold" id="kpi-remaining-text">Faltam R$ 209.088,00 para atingir 100%</span>
+                        <span>Seul 2027 🇰🇷</span>
+                    </div>
+                </div>
+
+                <!-- QUICK-ADD BUTTONS -->
+                <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span class="font-bold text-slate-600">Simular Entradas Rápidas de Recursos:</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="addFunds(500)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 transition">
+                            + R$ 500 (Rifa / Doação)
+                        </button>
+                        <button onclick="addFunds(2000)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 transition">
+                            + R$ 2.000 (Evento Paroquial)
+                        </button>
+                        <button onclick="addFunds(10000)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-lg border border-emerald-200 transition">
+                            + R$ 10.000 (Cota Empresa)
+                        </button>
+                        <button onclick="resetFunds()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-medium px-2.5 py-1.5 rounded-lg transition">
+                            Zerar (R$ 0)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Meta Financeira Global</p>
+                    <p class="text-2xl font-black text-blue-900 mt-1" id="kpi-card-goal">R$ 209.088,00</p>
+                    <span class="inline-block mt-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-medium" id="kpi-card-scen-name">Cenário B (Realista)</span>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-emerald-200 card-shadow">
+                    <p class="text-xs font-semibold text-emerald-800 uppercase">Valor Arrecadado Até Hoje</p>
+                    <p class="text-2xl font-black text-emerald-700 mt-1" id="kpi-card-raised">R$ 0,00</p>
+                    <span class="inline-block mt-2 text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold" id="kpi-card-pct">0,0% Concluído</span>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-amber-200 card-shadow">
+                    <p class="text-xs font-semibold text-amber-900 uppercase">Saldo Restante a Captação</p>
+                    <p class="text-2xl font-black text-amber-600 mt-1" id="kpi-card-remaining">R$ 209.088,00</p>
+                    <span class="inline-block mt-2 text-xs text-amber-800 font-medium">Meta para Eventos e Empresas</span>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Custo Total por Peregrino</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1" id="kpi-card-person">R$ 17.424,00</p>
+                    <span class="inline-block mt-2 text-xs text-slate-500">Tudo incluso por ~20 dias</span>
+                </div>
+            </div>
+
+            <!-- 10 CENTRAIS / HIGHLIGHTS SUMMARY -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span>💡</span> Os 10 Pilares Fundamentais da Viabilidade (Patos de Minas)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                        <p class="text-slate-700"><strong>Datas Oficiais:</strong> JMJ de 3 a 8 de agosto de 2027 em Seul; Dias nas Dioceses (DID) de 29 de julho a 2 de agosto.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <p class="text-slate-700"><strong>Custo do Cenário Realista:</strong> R$ 209.088,00 para 12 pessoas (R$ 17.424/pessoa), com margem de segurança cambial de 10%.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <p class="text-slate-700"><strong>Pacote A1 JMJ (USD 310):</strong> Inclui alojamento coletivo, alimentação completa e passe urbano em Seul durante a JMJ.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                        <p class="text-slate-700"><strong>Semana Extra em Airbnb:</strong> Aluguel de residência inteira em Seul para os 12 peregrinos, permitindo cozinhar e baratear a estadia.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">5</span>
+                        <p class="text-slate-700"><strong>Logística Terrestre Patos → BSB:</strong> Van executiva fretada ligando Patos de Minas ao Aeroporto de Brasília (BSB) para voo internacional em tarifa de grupo.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">6</span>
+                        <p class="text-slate-700"><strong>Missão e Serviço Vicentino:</strong> Ação voluntária nas obras das Irmãs de Caridade em Suwon no pré-evento, chancelado pelo Conselho de Patos de Minas.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">7</span>
+                        <p class="text-slate-700"><strong>Patrocínio Corporativo ESG:</strong> Apelo ao agronegócio e cooperativas de Patos de Minas (CEMIL, Sicoob Credicopa, Sicoob Credipatos - FATES).</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">8</span>
+                        <p class="text-slate-700"><strong>Arrecadação Comunitária:</strong> Calendário estruturado de 15 eventos paroquiais e regionais com potencial líquido de até R$ 166.400,00.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">9</span>
+                        <p class="text-slate-700"><strong>Vistos e Documentação:</strong> Isenção de visto consular para brasileiros, sendo obrigatório apenas o registro eletrônico K-ETA.</p>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="bg-blue-900 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5">10</span>
+                        <p class="text-slate-700"><strong>Segurança e Saúde:</strong> Seguro viagem saúde ampliado cobrindo 20 dias e planejamento térmico para o rigoroso verão asiático.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: ORÇAMENTO INTERATIVO -->
+        <section id="content-orcamento" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">📊 Análise Orçamentária & Simulador de Cenários</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Nesta seção, explore detalhadamente os custos de viagem divididos em três cenários orçamentários: Mínimo (A), Realista (B) e Seguro (C). Os valores consideram o período completo de 20 dias, cobrindo a van executiva de Patos de Minas ao aeroporto BSB, trecho aéreo internacional, inscrição oficial no Pacote A1 da JMJ, hospedagem coletiva via Airbnb para a semana de turismo cultural, alimentação balanceada, passe de transporte municipal em Seul, documentação, seguro saúde e uma reserva contingencial de 10%.
+                </p>
+            </div>
+
+            <!-- SCENARIO SWITCHER BUTTONS -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 card-shadow">
+                <span class="text-sm font-bold text-slate-700 uppercase tracking-wide">Selecione o Cenário Orçamentário:</span>
+                <div class="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 w-full sm:w-auto">
+                    <button onclick="setScenario('A')" id="btn-scen-A" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition w-1/3 sm:w-auto text-slate-600">
+                        A: Mínimo (R$ 14,6k)
+                    </button>
+                    <button onclick="setScenario('B')" id="btn-scen-B" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition w-1/3 sm:w-auto bg-blue-900 text-white shadow">
+                        B: Realista (R$ 17,4k)
+                    </button>
+                    <button onclick="setScenario('C')" id="btn-scen-C" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition w-1/3 sm:w-auto text-slate-600">
+                        C: Seguro (R$ 21,3k)
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHART & SUMMARY DISPLAY -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- CHART CONTAINER -->
+                <div class="lg:col-span-6 bg-white p-6 rounded-xl border border-slate-200 card-shadow flex flex-col justify-between">
+                    <h4 class="text-base font-bold text-slate-900 mb-2 text-center" id="chart-title">Distribuição de Custos por Hóspede (Cenário B - Realista)</h4>
+                    <p class="text-xs text-slate-500 text-center mb-4">Composição percentual dos R$ 17.424,00 por peregrino</p>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC BUDGET TABLE -->
+                <div class="lg:col-span-6 bg-white p-6 rounded-xl border border-slate-200 card-shadow space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h4 class="font-bold text-slate-900">Detalhamento dos Itens (12 Peregrinos)</h4>
+                        <span id="badge-scenario" class="text-xs font-bold px-2.5 py-1 rounded bg-blue-100 text-blue-800">Cenário B (Recomendado)</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-500 font-semibold">
+                                    <th class="py-2">Rubrica Orçamentária</th>
+                                    <th class="py-2 text-right">Por Pessoa</th>
+                                    <th class="py-2 text-right">Grupo (12 p.)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budget-table-body" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1">
+                        <p class="font-bold flex items-center gap-1">
+                            <span>🛡️</span> Margem de Segurança Cambial (10%): <span id="margin-val">R$ 1.584,00 / p</span>
+                        </p>
+                        <p class="text-amber-800 leading-normal">
+                            Fundamental para amortecer oscilações de câmbio (Won Coreano KRW / Dólar USD) e imprevistos médicos/logísticos durante os 20 dias de viagem.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PLANO DE ARRECADAÇÃO -->
+        <section id="content-arrecadacao" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">🤝 Engenharia Financeira & Fontes de Arrecadação</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Para levantar os R$ 209.088,00 necessários sem comprometer as famílias dos jovens, o projeto de Patos de Minas estabeleceu uma matriz diversificada de arrecadação. Combinamos patrocínios corporativos via contrapartidas de ESG e fundos cooperativos (FATES), um plano intensivo de 15 eventos paroquiais e comunitários, doações de padrinhos/benfeitores, subsídios vicentinos e campanhas de financiamento coletivo online.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- REVENUE CHART -->
+                <div class="lg:col-span-6 bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                    <h4 class="text-base font-bold text-slate-900 mb-2 text-center">Meta Financeira por Fonte de Arrecadação</h4>
+                    <p class="text-xs text-slate-500 text-center mb-4">Meta Global: R$ 209.088,00</p>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- REVENUE TABLE & CALCULATOR -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                        <h4 class="font-bold text-slate-900 mb-3">Quadro de Metas por Fonte</h4>
+                        <div class="overflow-x-auto text-xs sm:text-sm">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-500">
+                                        <th class="py-2">Fonte</th>
+                                        <th class="py-2 text-right">Meta (R$)</th>
+                                        <th class="py-2 text-right">% do Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                    <tr>
+                                        <td class="py-2 font-medium">🎟️ Eventos Beneficentes (15 Ações)</td>
+                                        <td class="py-2 text-right font-bold text-emerald-700">R$ 115.000,00</td>
+                                        <td class="py-2 text-right">55,0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">🏢 Patrocínios Empresariais (ESG / FATES)</td>
+                                        <td class="py-2 text-right font-bold text-blue-800">R$ 60.000,00</td>
+                                        <td class="py-2 text-right">28,7%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">👤 Carnê de Padrinhos / Benfeitores</td>
+                                        <td class="py-2 text-right font-bold text-amber-700">R$ 15.000,00</td>
+                                        <td class="py-2 text-right">7,2%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">⛪ Coletas e Subsídios Paroquiais</td>
+                                        <td class="py-2 text-right font-bold text-slate-800">R$ 10.000,00</td>
+                                        <td class="py-2 text-right">4,8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">💻 Vaquinha Virtual / Campanha Pix</td>
+                                        <td class="py-2 text-right font-bold text-purple-700">R$ 9.088,00</td>
+                                        <td class="py-2 text-right">4,3%</td>
+                                    </tr>
+                                    <tr class="bg-slate-50 font-black text-slate-900 border-t-2 border-slate-300">
+                                        <td class="py-2">TOTAL ALVO</td>
+                                        <td class="py-2 text-right text-emerald-700">R$ 209.088,00</td>
+                                        <td class="py-2 text-right">100,0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DONATION DYNAMICS CALCULATOR -->
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 card-shadow space-y-3">
+                        <h4 class="font-bold text-blue-950 flex items-center gap-2">
+                            <span>🧮</span> Conversor de Metas em Engajamento Comunitário
+                        </h4>
+                        <p class="text-xs text-blue-900">
+                            Para visualizar o alcance social necessário em Patos de Minas, veja a equivalência de doações comunitárias e cotas para atingir a meta:
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-white p-2.5 rounded border border-blue-100">
+                                <span class="font-bold text-blue-900">750 doadores de R$ 20,00</span>
+                                <span class="block text-slate-500">= R$ 15.000,00 (Meta Padrinhos)</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-100">
+                                <span class="font-bold text-blue-900">3 Cotas Ouro de R$ 10.000,00</span>
+                                <span class="block text-slate-500">= R$ 30.000,00 (Grandes Empresas)</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-100">
+                                <span class="font-bold text-blue-900">1.452 bilhetes de Rifa a R$ 25</span>
+                                <span class="block text-slate-500">= R$ 36.300,00 (Lucro da Rifa)</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-blue-100">
+                                <span class="font-bold text-blue-900">450 convites Feijoada R$ 35</span>
+                                <span class="block text-slate-500">= R$ 12.950,00 (Lucro da Feijoada)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CALENDÁRIO DE 15 EVENTOS BENEFICENTES -->
+        <section id="content-eventos" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">🎟️ Calendário Operacional de 15 Eventos Beneficentes</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    A espinha dorsal do financiamento comunitário reside no trabalho voluntário dos jovens vicentinos e no engajamento das paróquias de Patos de Minas. Mapeamos 15 eventos paroquiais e festas tradicionais com potencial de gerar até R$ 166.400,00 em lucro líquido, superando a meta direta de R$ 115.000,00. Utilize os filtros interativos abaixo para analisar custo inicial, margem e público estimado.
+                </p>
+            </div>
+
+            <!-- EVENT FILTERS -->
+            <div class="flex flex-wrap items-center gap-2 bg-white p-4 rounded-xl border border-slate-200 card-shadow">
+                <span class="text-xs font-bold text-slate-500 uppercase mr-2">Filtrar por Tipo:</span>
+                <button onclick="filterEvents('all')" id="btn-ev-all" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-900 text-white">Todos (15)</button>
+                <button onclick="filterEvents('gastronomia')" id="btn-ev-gastronomia" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">🍲 Gastronomia & Jantares</button>
+                <button onclick="filterEvents('leilao')" id="btn-ev-leilao" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">🐮 Leilões & Rifas</button>
+                <button onclick="filterEvents('baixo-custo')" id="btn-ev-baixo-custo" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">⚡ Baixo Custo (&lt;R$ 1.500)</button>
+            </div>
+
+            <!-- EVENTS TABLE -->
+            <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-800 text-white">
+                            <tr>
+                                <th class="p-3"># Evento / Ação (Patos de Minas)</th>
+                                <th class="p-3">Investimento</th>
+                                <th class="p-3">Preço Sugerido</th>
+                                <th class="p-3">Público / Vendas</th>
+                                <th class="p-3 text-right">Lucro Líquido (R$)</th>
+                                <th class="p-3 text-center">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-table-body" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 bg-slate-50 border-t border-slate-200 text-right font-bold text-sm text-slate-800">
+                    Potencial Acumulado dos 15 Eventos: <span class="text-emerald-700 text-lg font-black ml-2">R$ 166.400,00</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: EMPRESAS & ESG -->
+        <section id="content-esg" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">🏢 Captação Corporativa & Alinhamento ESG em Patos de Minas</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Patos de Minas é o polo econômico e agroindustrial do Alto Paranaíba, destacando-se como a "Capital do Milho", além de forte presença no setor lácteo, suinocultura e cooperativismo de crédito. Posicionamos esta viagem como um programa de desenvolvimento de liderança jovem de alto impacto. Empresas regionais podem canalizar aportes via fundos sociais (FATES) e pilares de ESG (Governança Ambiental, Social e Corporativa).
+                </p>
+            </div>
+
+            <!-- KEY CORPORATE SPONSORS MAP -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="text-2xl">🥛</span>
+                        <div>
+                            <h4 class="font-bold text-slate-900">CEMIL & Laticínios da Região</h4>
+                            <p class="text-xs text-blue-700 font-semibold">Cooperativismo Agroindustrial</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 text-xs leading-relaxed mb-4">
+                        A Cooperativa Central dos Produtores Rurais de Leite do Vale do Paranaíba (CEMIL), sediada em Patos de Minas, é referência nacional em responsabilidade social e apoio à comunidade local. O projeto missionário se alinha ao investimento no desenvolvimento de jovens da terra.
+                    </p>
+                    <span class="inline-block bg-blue-50 text-blue-900 text-xs px-2.5 py-1 rounded font-semibold">Alvo: Cota Ouro (R$ 10.000,00 a R$ 20.000,00)</span>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="text-2xl">🏦</span>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Sicoob Credicopa / Sicoob Credipatos</h4>
+                            <p class="text-xs text-emerald-700 font-semibold">Fundo FATES / Cooperativismo de Crédito</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 text-xs leading-relaxed mb-4">
+                        As cooperativas de crédito de Patos de Minas destinam anualmente recursos do Fundo de Assistência Técnica, Educacional e Social (FATES) para promover ações educativas e formação humana dos cidadãos da região.
+                    </p>
+                    <span class="inline-block bg-emerald-50 text-emerald-900 text-xs px-2.5 py-1 rounded font-semibold">Alvo: Cota Ouro / Co-patrocínio Institucional</span>
+                </div>
+            </div>
+
+            <!-- SPONSORSHIP TIERS -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h4 class="font-bold text-slate-900 mb-4">Estrutura de Cotas de Patrocínio para Empresas de Patos de Minas</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="border border-amber-300 bg-amber-50/50 p-5 rounded-xl space-y-3">
+                        <span class="bg-amber-500 text-white text-xs font-extrabold px-2.5 py-1 rounded">COTA OURO</span>
+                        <p class="text-2xl font-black text-slate-900">R$ 10.000,00</p>
+                        <p class="text-xs text-slate-600">Foco: Central de Laticínios, Empresas do Agronegócio, Cooperativas.</p>
+                        <ul class="text-xs text-slate-700 space-y-1">
+                            <li>• Logotipo máster em camisas oficiais</li>
+                            <li>• Destaque em todas as mídias da missão</li>
+                            <li>• Placa de agradecimento vicentino</li>
+                        </ul>
+                    </div>
+                    <div class="border border-slate-300 bg-slate-50 p-5 rounded-xl space-y-3">
+                        <span class="bg-slate-600 text-white text-xs font-extrabold px-2.5 py-1 rounded">COTA PRATA</span>
+                        <p class="text-2xl font-black text-slate-900">R$ 4.000,00</p>
+                        <p class="text-xs text-slate-600">Foco: Hospitais privados, Supermercados, Concessionárias, Redes de Farmácia.</p>
+                        <ul class="text-xs text-slate-700 space-y-1">
+                            <li>• Logotipo intermediário no uniforme</li>
+                            <li>• Citação em banners dos 15 eventos</li>
+                            <li>• Certificado de Parceiro da Juventude</li>
+                        </ul>
+                    </div>
+                    <div class="border border-amber-700/30 bg-orange-50/50 p-5 rounded-xl space-y-3">
+                        <span class="bg-amber-800 text-white text-xs font-extrabold px-2.5 py-1 rounded">COTA BRONZE</span>
+                        <p class="text-2xl font-black text-slate-900">R$ 500 a 1.000</p>
+                        <p class="text-xs text-slate-600">Foco: Comércio central, Postos de Combustível, Escritórios.</p>
+                        <ul class="text-xs text-slate-700 space-y-1">
+                            <li>• Nome na camisa da missão</li>
+                            <li>• Agradecimento em redes sociais</li>
+                            <li>• Convite VIP para prestação de contas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 6: PROJETO VICENTINO -->
+        <section id="content-missao" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">✝️ A Identidade Vicentina & Serviço Voluntário na Coreia</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    A Sociedade de São Vicente de Paulo (SSVP) em Patos de Minas baseia sua atuação na caridade prática e no serviço direto aos necessitados. Para demonstrar a seriedade da peregrinação aos benfeitores locais, a viagem foi modelada como uma Missão Vicentina Transcultural. Os jovens atuarão em voluntariado prático com a Família Vicentina sul-coreana antes dos atos centrais da JMJ e multiplicarão o aprendizado ao retornarem às conferências patenses.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow space-y-3">
+                    <span class="text-3xl">🏥</span>
+                    <h4 class="font-bold text-slate-900">Voluntariado em Suwon</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Durante os Dias nas Dioceses (DID), o grupo de Patos de Minas atuar em obras mantidas pelas Irmãs de Caridade de São Vicente de Paulo em Suwon, como o <em>St. Vincent's Hospital</em> e a Clínica de Ansan, servindo trabalhadores imigrantes e idosos vulneráveis.
+                    </p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow space-y-3">
+                    <span class="text-3xl">🤝</span>
+                    <h4 class="font-bold text-slate-900">Conexão SSVP Coreia</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Intercâmbio com as Conferências Vicentinas da Arquidiocese de Seul, trocando experiências sobre o combate à pobreza urbana na Ásia e no interior de Minas Gerais.
+                    </p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow space-y-3">
+                    <span class="text-3xl">📢</span>
+                    <h4 class="font-bold text-slate-900">Legado e Prestação de Contas</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Compromisso formal pós-viagem: os 12 peregrinos realizarão ciclos de palestras nas paróquias da Diocese de Patos de Minas, publicarão um relatório financeiro aberto e assumirão lideranças ativas na SSVP.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 7: CRONOGRAMA & LOGÍSTICA -->
+        <section id="content-cronograma" class="hidden space-y-8">
+            <!-- INTRODUCTORY PARAGRAPH -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">📅 Cronograma Macro, Logística & Mitigação de Riscos</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    O sucesso de uma peregrinação internacional para um grupo de 12 pessoas exige planejamento detalhado. A logística terrestre parte de Patos de Minas até o Aeroporto Internacional de Brasília (BSB) via BR-365 / BR-040 (~410 km). Abaixo encontra-se o roteiro cronológico de preparação, acompanhado das diretrizes sanitárias, contratação do seguro saúde de 20 dias e emissão do K-ETA.
+                </p>
+            </div>
+
+            <!-- TIMELINE GRID -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 card-shadow space-y-6">
+                <h4 class="font-bold text-slate-900">Linha do Tempo de Execução (2026 - 2027)</h4>
+                
+                <div class="relative border-l-2 border-blue-900 ml-4 space-y-8 pl-6">
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-0 bg-blue-900 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">1</span>
+                        <h5 class="font-bold text-slate-900 text-sm">Jan a Jun / 2026 — Estruturação e Lançamento</h5>
+                        <p class="text-xs text-slate-600 mt-1">Apresentação do Caderno de Patrocínios à Cemil, Sicoob Credicopa e Credipatos. Início dos primeiros 5 eventos beneficentes (Feijoada Vicentina, Bazar, Festival de Caldos).</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-0 bg-blue-900 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">2</span>
+                        <h5 class="font-bold text-slate-900 text-sm">Ago a Set / 2026 — Reserva de Voos (Group Desk)</h5>
+                        <p class="text-xs text-slate-600 mt-1">Abertura de tarifa de grupo a partir do Aeroporto de Brasília (BSB) com Ethiopian ou Qatar Airways. Reserva de van executiva Patos de Minas → BSB. Inscrições no portal <em>wydseoul.org</em>.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-0 bg-blue-900 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">3</span>
+                        <h5 class="font-bold text-slate-900 text-sm">Out / 2026 a Mai / 2027 — Ápice de Arrecadação & Airbnb</h5>
+                        <p class="text-xs text-slate-600 mt-1">Execução dos leilões de gado e grandes rifas do agronegócio. Reserva antecipada de Airbnb para 12 pessoas na Região Metropolitana de Seul para a semana de turismo.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-0 bg-emerald-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">4</span>
+                        <h5 class="font-bold text-emerald-800 text-sm">Jun a Jul / 2027 — Quitação e Emissão de Documentos</h5>
+                        <p class="text-xs text-slate-600 mt-1">Pagamento final das passagens aéreas e Pacote A1 JMJ. Emissão dos registros eletrônicos K-ETA, apólices de seguro saúde internacional (20 dias) e chips eSIM.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-0 bg-amber-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">5</span>
+                        <h5 class="font-bold text-amber-900 text-sm">29 Jul a 17 Ago / 2027 — Execução da Missão na Coreia</h5>
+                        <p class="text-xs text-slate-600 mt-1">Embarque Patos de Minas → BSB → Seul. Dias nas Dioceses em Suwon, JMJ 2027 e semana de turismo em Airbnb com refeições coletivas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGISTICS & WARNINGS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-amber-50 p-5 rounded-xl border border-amber-200 space-y-2">
+                    <h5 class="font-bold text-amber-950 flex items-center gap-2 text-sm">
+                        <span>☀️</span> Desafio Climático: Monções e Calor
+                    </h5>
+                    <p class="text-xs text-amber-900 leading-relaxed">
+                        Agosto é o ápice do verão e das monções na Coreia do Sul, com temperaturas acima de 35°C e alta umidade. Exige-se hidratação contínua, capas de chuva reforçadas e sacos de dormir impermeáveis para os alojamentos da JMJ.
+                    </p>
+                </div>
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 space-y-2">
+                    <h5 class="font-bold text-blue-950 flex items-center gap-2 text-sm">
+                        <span>📱</span> Barreira Idiomática e Mobilidade
+                    </h5>
+                    <p class="text-xs text-blue-900 leading-relaxed">
+                        O Google Maps tem limitações de navegação a pé na Coreia. Todos os líderes utilizarão o app <strong>Naver Map</strong> e o tradutor <strong>Papago</strong>, abastecidos com chips de dados eSIM locais.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <div>
+                <p class="text-white font-bold text-sm">Sociedade de São Vicente de Paulo — Conselho de Patos de Minas-MG</p>
+                <p class="mt-1">Estudo de Viabilidade para a Jornada Mundial da Juventude 2027 • Seul, Coreia do Sul</p>
+            </div>
+            <div class="text-slate-500">
+                <p>Cotações em BRL com base em câmbio oficial (1 USD = 5,21 BRL / 1.000 KRW = 3,77 BRL)</p>
+                <p class="mt-0.5">Aplicação interativa desenvolvida para facilitação e governança financeira.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // GLOBAL STATE
+        let activeScenario = 'B';
+        let amountRaised = 0.00; // Starting budget initialized to R$ 0,00
+
+        // SCENARIOS DEFINITION
+        const scenarios = {
+            'A': {
+                name: 'Cenário A (Mínimo)',
+                badge: 'bg-slate-100 text-slate-800',
+                person: 14664.10,
+                total: 175969.20,
+                marginPerPerson: 1333.10,
+                items: [
+                    { name: 'Passagem Aérea (BSB-ICN)', person: 8596.00, total: 103152.00 },
+                    { name: 'Inscrição JMJ (Pacote A1)', person: 1615.00, total: 19380.00 },
+                    { name: 'Hospedagem Extra (Airbnb 7d + Pre)', person: 1100.00, total: 13200.00 },
+                    { name: 'Alimentação Extra (11 dias fora A1)', person: 660.00, total: 7920.00 },
+                    { name: 'Transporte (Van Patos-BSB + Passes Seul)', person: 510.00, total: 6120.00 },
+                    { name: 'Seguro Viagem Saúde (20d)', person: 320.00, total: 3840.00 },
+                    { name: 'Documentos, eSIM e Extras', person: 530.00, total: 6360.00 },
+                    { name: 'Margem de Segurança / Reserva (10%)', person: 1333.10, total: 15997.20 }
+                ],
+                chartData: [8596, 1615, 1100, 660, 510, 320, 530, 1333.10]
+            },
+            'B': {
+                name: 'Cenário B (Realista - Recomendado)',
+                badge: 'bg-blue-100 text-blue-800',
+                person: 17424.00,
+                total: 209088.00,
+                marginPerPerson: 1584.00,
+                items: [
+                    { name: 'Passagem Aérea (BSB-ICN)', person: 9899.00, total: 118788.00 },
+                    { name: 'Inscrição JMJ (Pacote A1)', person: 1615.00, total: 19380.00 },
+                    { name: 'Hospedagem Extra (Airbnb 7d + Pre)', person: 1446.00, total: 17352.00 },
+                    { name: 'Alimentação Extra (11 dias fora A1)', person: 1100.00, total: 13200.00 },
+                    { name: 'Transporte (Van Patos-BSB + Passes Seul)', person: 580.00, total: 6960.00 },
+                    { name: 'Seguro Viagem Saúde (20d)', person: 400.00, total: 4800.00 },
+                    { name: 'Documentos, eSIM e Extras', person: 800.00, total: 9600.00 },
+                    { name: 'Margem de Segurança / Reserva (10%)', person: 1584.00, total: 19008.00 }
+                ],
+                chartData: [9899, 1615, 1446, 1100, 580, 400, 800, 1584]
+            },
+            'C': {
+                name: 'Cenário C (Seguro / Conforto)',
+                badge: 'bg-amber-100 text-amber-900',
+                person: 21332.30,
+                total: 255987.60,
+                marginPerPerson: 1939.30,
+                items: [
+                    { name: 'Passagem Aérea (BSB-ICN)', person: 11462.00, total: 137544.00 },
+                    { name: 'Inscrição JMJ (Pacote A1+)', person: 1771.00, total: 21252.00 },
+                    { name: 'Hospedagem Extra (Airbnb 7d + Pre)', person: 1950.00, total: 23400.00 },
+                    { name: 'Alimentação Extra (11 dias fora A1)', person: 1760.00, total: 21120.00 },
+                    { name: 'Transporte (Van Patos-BSB + Passes Seul)', person: 700.00, total: 8400.00 },
+                    { name: 'Seguro Viagem Saúde (20d)', person: 550.00, total: 6600.00 },
+                    { name: 'Documentos, eSIM e Extras', person: 1200.00, total: 14400.00 },
+                    { name: 'Margem de Segurança / Reserva (10%)', person: 1939.30, total: 23271.60 }
+                ],
+                chartData: [11462, 1771, 1950, 1760, 700, 550, 1200, 1939.30]
+            }
+        };
+
+        const eventsList = [
+            { id: 1, name: '1. Mega Feijoada Vicentina de Patos de Minas', invest: 2800, price: 35, public: 450, profit: 12950, cat: 'gastronomia' },
+            { id: 2, name: '2. Festival do Milho & Caldos de Inverno', invest: 1600, price: 25, public: 350, profit: 7150, cat: 'gastronomia' },
+            { id: 3, name: '3. Galinhada Patense com Pequi e Tropeiro', invest: 2200, price: 30, public: 400, profit: 9800, cat: 'gastronomia' },
+            { id: 4, name: '4. Bazar Beneficente do Rosário', invest: 500, price: 15, public: 600, profit: 8500, cat: 'baixo-custo' },
+            { id: 5, name: '5. Café Colonial Mineiro na Matriz de Santo Antônio', invest: 1400, price: 25, public: 300, profit: 6100, cat: 'gastronomia' },
+            { id: 6, name: '6. Ação Entre Amigos / Rifa de Prêmios', invest: 1200, price: 25, public: 1500, profit: 36300, cat: 'leilao' },
+            { id: 7, name: '7. Churrasco Dançante & Leilão do Agronegócio', invest: 6500, price: 50, public: 400, profit: 28500, cat: 'leilao' },
+            { id: 8, name: '8. Venda de Camisas "Patos em Seul"', invest: 5500, price: 45, public: 300, profit: 8000, cat: 'outros' },
+            { id: 9, name: '9. Noite de Pizza Solidária Paroquial', invest: 2700, price: 40, public: 250, profit: 7300, cat: 'gastronomia' },
+            { id: 10, name: '10. Torneio de Futebol Society "São Vicente"', invest: 1200, price: 200, public: 15, profit: 6300, cat: 'baixo-custo' },
+            { id: 11, name: '11. Venda de Pães de Queijo e Quitandas Domingueiras', invest: 2200, price: 10, public: 800, profit: 5800, cat: 'gastronomia' },
+            { id: 12, name: '12. Cantata e Show Missionário no Teatro', invest: 1100, price: 20, public: 300, profit: 7400, cat: 'baixo-custo' },
+            { id: 13, name: '13. Lava-Jato Solidário da Juventude', invest: 400, price: 40, public: 120, profit: 4400, cat: 'baixo-custo' },
+            { id: 14, name: '14. Marmitex de Domingo nas Paróquias', invest: 2600, price: 28, public: 350, profit: 7200, cat: 'gastronomia' },
+            { id: 15, name: '15. Leilão Paroquial de Sobremesas e Doces', invest: 800, price: 50, public: 200, profit: 10700, cat: 'leilao' }
+        ];
+
+        let currentChart = null;
+        let revenueChartInstance = null;
+
+        // FORMAT CURRENCY BRL
+        function formatBRL(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            initCostChart();
+            initRevenueChart();
+            setScenario('B');
+            renderEventsTable('all');
+            refreshProgressUI();
+        });
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'orcamento', 'arrecadacao', 'eventos', 'esg', 'missao', 'cronograma'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                if (t === tabId) {
+                    btn.classList.add('tab-active');
+                    content.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('tab-active');
+                    content.classList.add('hidden');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // REFRESH PROGRESS TRACKER LOGIC
+        function refreshProgressUI() {
+            const currentGoal = scenarios[activeScenario].total;
+            const pct = Math.min(100, Math.max(0, (amountRaised / currentGoal) * 100));
+            const remaining = Math.max(0, currentGoal - amountRaised);
+
+            // Header Elements
+            document.getElementById('header-progress-text').innerText = `${formatBRL(amountRaised)} / ${formatBRL(currentGoal)}`;
+            document.getElementById('header-pct-badge').innerText = `${pct.toFixed(1).replace('.', ',')}%`;
+
+            // Bar Widget
+            document.getElementById('kpi-raised-bar').innerText = formatBRL(amountRaised);
+            document.getElementById('kpi-goal-bar').innerText = formatBRL(currentGoal);
+            document.getElementById('kpi-pct-text').innerText = `${pct.toFixed(1).replace('.', ',')}% da Meta (${scenarios[activeScenario].name})`;
+            document.getElementById('kpi-remaining-text').innerText = remaining > 0 
+                ? `Faltam ${formatBRL(remaining)} para atingir 100% da meta`
+                : `🎉 Meta 100% Alcançada! Excelente trabalho!`;
+            
+            const bar = document.getElementById('visual-progress-bar');
+            bar.style.width = `${pct}%`;
+            document.getElementById('bar-pct-inner').innerText = `${pct.toFixed(1)}%`;
+
+            // Input element sync
+            const inputEl = document.getElementById('input-raised');
+            if (document.activeElement !== inputEl) {
+                inputEl.value = amountRaised;
+            }
+
+            // Cards Grid Sync
+            document.getElementById('kpi-card-goal').innerText = formatBRL(currentGoal);
+            document.getElementById('kpi-card-scen-name').innerText = scenarios[activeScenario].name;
+            document.getElementById('kpi-card-raised').innerText = formatBRL(amountRaised);
+            document.getElementById('kpi-card-pct').innerText = `${pct.toFixed(1).replace('.', ',')}% Concluído`;
+            document.getElementById('kpi-card-remaining').innerText = formatBRL(remaining);
+            document.getElementById('kpi-card-person').innerText = formatBRL(scenarios[activeScenario].person);
+        }
+
+        // INPUT & QUICK ADD HANDLERS
+        function updateRaisedFromInput(val) {
+            const num = parseFloat(val);
+            if (!isNaN(num) && num >= 0) {
+                amountRaised = num;
+                refreshProgressUI();
+            }
+        }
+
+        function addFunds(delta) {
+            amountRaised += delta;
+            refreshProgressUI();
+        }
+
+        function resetFunds() {
+            amountRaised = 0.00;
+            refreshProgressUI();
+        }
+
+        // SCENARIO SWITCHING LOGIC
+        function setScenario(scenKey) {
+            activeScenario = scenKey;
+            const sc = scenarios[scenKey];
+            
+            // Toggle button styles
+            ['A', 'B', 'C'].forEach(k => {
+                const btn = document.getElementById(`btn-scen-${k}`);
+                if (k === scenKey) {
+                    btn.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition w-1/3 sm:w-auto bg-blue-900 text-white shadow";
+                } else {
+                    btn.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition w-1/3 sm:w-auto text-slate-600 hover:text-slate-900";
+                }
+            });
+
+            // Update badge & margin
+            document.getElementById('badge-scenario').innerText = sc.name;
+            document.getElementById('badge-scenario').className = `text-xs font-bold px-2.5 py-1 rounded ${sc.badge}`;
+            document.getElementById('margin-val').innerText = `${formatBRL(sc.marginPerPerson)} / p`;
+            document.getElementById('chart-title').innerText = `Distribuição de Custos por Hóspede (${sc.name})`;
+
+            // Populate Table
+            const tbody = document.getElementById('budget-table-body');
+            tbody.innerHTML = '';
+            sc.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2.5 font-medium ${item.name.includes('Margem') ? 'text-amber-800 font-bold' : ''}">${item.name}</td>
+                    <td class="py-2.5 text-right font-semibold">${formatBRL(item.person)}</td>
+                    <td class="py-2.5 text-right text-slate-500">${formatBRL(item.total)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Add Total Row
+            const totalTr = document.createElement('tr');
+            totalTr.className = "bg-slate-50 font-black text-slate-900 border-t-2 border-slate-300";
+            totalTr.innerHTML = `
+                <td class="py-3">CUSTO TOTAL FINAL</td>
+                <td class="py-3 text-right text-amber-600">${formatBRL(sc.person)}</td>
+                <td class="py-3 text-right text-blue-900">${formatBRL(sc.total)}</td>
+            `;
+            tbody.appendChild(totalTr);
+
+            // Update Chart
+            if (currentChart) {
+                currentChart.data.datasets[0].data = sc.chartData;
+                currentChart.update();
+            }
+
+            refreshProgressUI();
+        }
+
+        // INIT COST CHART.JS
+        function initCostChart() {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Passagem Aérea', 'Inscrição JMJ A1', 'Hospedagem Airbnb', 
+                        'Alimentação Extra', 'Transportes (Patos-BSB+Seul)', 'Seguro Viagem', 
+                        'Documentos/Extras', 'Reserva Cambial 10%'
+                    ],
+                    datasets: [{
+                        data: scenarios['B'].chartData,
+                        backgroundColor: [
+                            '#1E40AF', '#D97706', '#059669', '#7C3AED', 
+                            '#0284C7', '#DC2626', '#64748B', '#F59E0B'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.raw || 0;
+                                    return ` ${formatBRL(val)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // INIT REVENUE CHART.JS
+        function initRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            revenueChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Eventos (15)', 'Empresas/ESG', 'Padrinhos/Doações', 'Paróquias', 'Vaquinha Pix'],
+                    datasets: [{
+                        label: 'Meta de Arrecadação (R$)',
+                        data: [115000, 60000, 15000, 10000, 9088],
+                        backgroundColor: ['#059669', '#1E40AF', '#D97706', '#475569', '#7C3AED'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Meta: ${formatBRL(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return 'R$ ' + value / 1000 + 'k'; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // RENDER EVENTS MATRIX
+        function renderEventsTable(category) {
+            const tbody = document.getElementById('events-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = eventsList.filter(e => {
+                if (category === 'all') return true;
+                if (category === 'gastronomia') return e.cat === 'gastronomia';
+                if (category === 'leilao') return e.cat === 'leilao';
+                if (category === 'baixo-custo') return e.invest <= 1500;
+                return true;
+            });
+
+            filtered.forEach(ev => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-900">${ev.name}</td>
+                    <td class="p-3 text-slate-600">${formatBRL(ev.invest)}</td>
+                    <td class="p-3 text-slate-600">${formatBRL(ev.price)}</td>
+                    <td class="p-3 text-slate-600">${ev.public.toLocaleString('pt-BR')} p.</td>
+                    <td class="p-3 text-right font-black text-emerald-700">${formatBRL(ev.profit)}</td>
+                    <td class="p-3 text-center">
+                        <span class="inline-block bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase">
+                            ${ev.cat}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // FILTER EVENTS BUTTON HANDLER
+        function filterEvents(cat) {
+            ['all', 'gastronomia', 'leilao', 'baixo-custo'].forEach(c => {
+                const btn = document.getElementById(`btn-ev-${c}`);
+                if (c === cat) {
+                    btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-900 text-white";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200";
+                }
+            });
+            renderEventsTable(cat);
+        }
+    </script>
+</body>
+</html>
