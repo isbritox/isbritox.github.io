@@ -127,6 +127,40 @@ test("verdict icon strokes are drawable", () => {
     assertEqual(paths.every(path => path.getAttribute("pathLength") === "1"), true);
 });
 
+test("problem stat matches the problem list", () => {
+    setup();
+    assertEqual($("#problemCards").textContent.trim(), String($$(".problem-item").length));
+    assertEqual($("#problemCards").textContent.trim(), "2");
+});
+
+test("filter label names its unit", () => {
+    setup();
+    assertEqual($('[data-filter="problems"]').textContent.trim().startsWith("Com problema"), true);
+});
+
+test("verdict has one specific line", () => {
+    setup();
+    assertEqual($("#resultStatusTitle").textContent.trim(), win.describeProblems(fixtureCards, fixtureProblems));
+    assertEqual($("#resultStatusDescription").textContent.trim(), "");
+});
+
+test("example button updates the line counter", () => {
+    $("#exampleButton").click();
+    assertEqual($("#lineCounter").textContent.trim(), "10 linhas");
+});
+
+test("dark theme has no colored glow on banned cards", () => {
+    setup();
+    doc.documentElement.dataset.theme = "dark";
+    $('[data-view="grid"]').click();
+    const shadow = win.getComputedStyle($(".deck-card.is-banned .deck-card-art")).boxShadow;
+    assertEqual(shadow.includes("rgba(255, 69, 58, 0.4)"), false, shadow);
+});
+
+test("ambient has a single light", () => {
+    assertEqual($$(".ambient span").length, 1);
+});
+
 frame.addEventListener("load", () => {
     win = frame.contentWindow;
     doc = frame.contentDocument;

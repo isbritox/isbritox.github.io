@@ -55,7 +55,7 @@
     --segmented-thumb: #ffffff;
 
     /* Vidro: superfície translúcida + desfoque + borda de luz */
-    --glass: rgba(255, 255, 255, 0.58);
+    --glass: rgba(255, 255, 255, 0.72);
     --glass-strong: rgba(255, 255, 255, 0.76);
     --popover-bg: rgba(255, 255, 255, 0.92);
     --glass-inner: rgba(255, 255, 255, 0.72);
@@ -65,10 +65,8 @@
     --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 20px 50px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
     --field-glass: rgba(255, 255, 255, 0.86);
 
-    /* Luz ambiente que o vidro refrata */
-    --ambient-a: rgba(0, 113, 227, 0.16);
-    --ambient-b: rgba(191, 90, 242, 0.13);
-    --ambient-c: rgba(255, 159, 10, 0.12);
+    /* Luz ambiente que o vidro refrata: uma só, azul e discreta */
+    --ambient-a: rgba(0, 113, 227, 0.08);
     --ambient-base: #f5f5f7;
 
     --shadow-tile: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -142,10 +140,8 @@
     --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 30px 80px rgba(0, 0, 0, 0.5);
     --field-glass: rgba(0, 0, 0, 0.38);
 
-    /* No escuro a luz aparece mais, como um display retroiluminado */
-    --ambient-a: rgba(10, 132, 255, 0.34);
-    --ambient-b: rgba(191, 90, 242, 0.26);
-    --ambient-c: rgba(255, 159, 10, 0.14);
+    /* No escuro: fundo preto, um leve brilho azul atrás do vidro */
+    --ambient-a: rgba(10, 132, 255, 0.16);
     --ambient-base: #000000;
 
     --shadow-tile: none;
@@ -802,7 +798,7 @@ kbd {
 }
 
 .result-status-title {
-    font-size: 64px;
+    font-size: 80px;
     line-height: 1.05;
     font-weight: 700;
     letter-spacing: -0.035em;
@@ -830,6 +826,11 @@ kbd {
     margin-top: 10px;
     color: var(--text-secondary);
     font-size: 19px;
+}
+
+/* A linha do veredito já diz tudo; sem descrição, o espaço some */
+.result-status-description:empty {
+    display: none;
 }
 
 
@@ -1522,18 +1523,6 @@ kbd {
     background: radial-gradient(closest-side, var(--ambient-a), transparent);
 }
 
-.ambient span:nth-child(2) {
-    top: -10vmax;
-    right: -26vmax;
-    background: radial-gradient(closest-side, var(--ambient-b), transparent);
-}
-
-.ambient span:nth-child(3) {
-    bottom: -38vmax;
-    left: 18vmax;
-    background: radial-gradient(closest-side, var(--ambient-c), transparent);
-}
-
 
 
 /* =========================================================
@@ -1647,14 +1636,6 @@ kbd {
     to { stroke-dashoffset: 0; }
 }
 
-:root[data-theme="dark"] .result-status.valid .result-status-icon {
-    box-shadow: 0 12px 40px rgba(48, 209, 88, 0.4);
-}
-
-:root[data-theme="dark"] .result-status.invalid .result-status-icon {
-    box-shadow: 0 12px 40px rgba(255, 69, 58, 0.4);
-}
-
 
 /* =========================================================
    CARTAS: CARREGAMENTO E ESTADO NO ESCURO
@@ -1670,13 +1651,13 @@ kbd {
     transform: scale(1.04);
 }
 
-/* No escuro, o anel de estado brilha como um LED */
+/* No escuro, o anel de estado fica nítido; a sombra é neutra (sem brilho colorido) */
 :root[data-theme="dark"] .cards-list.is-grid .deck-card.is-banned .deck-card-art {
-    box-shadow: 0 0 0 2px var(--red), 0 10px 28px rgba(255, 69, 58, 0.4), var(--shadow-card);
+    box-shadow: 0 0 0 2px var(--red), var(--shadow-card);
 }
 
 :root[data-theme="dark"] .cards-list.is-grid .deck-card.is-commander-banned .deck-card-art {
-    box-shadow: 0 0 0 2px var(--orange), 0 10px 28px rgba(255, 159, 10, 0.35), var(--shadow-card);
+    box-shadow: 0 0 0 2px var(--orange), var(--shadow-card);
 }
 
 :root[data-theme="dark"] .cards-list.is-grid .deck-card:hover .deck-card-art {
@@ -1684,7 +1665,7 @@ kbd {
 }
 
 :root[data-theme="dark"] .cards-list.is-grid .deck-card.is-banned:hover .deck-card-art {
-    box-shadow: 0 0 0 2px var(--red), 0 14px 40px rgba(255, 69, 58, 0.55), 0 18px 50px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 0 2px var(--red), 0 18px 50px rgba(0, 0, 0, 0.7);
 }
 
 .cards-list.is-grid .deck-card:active .deck-card-art {
@@ -1874,7 +1855,7 @@ kbd {
     }
 
     .result-status-title {
-        font-size: 48px;
+        font-size: 56px;
     }
 
     .result-status-subtitle {

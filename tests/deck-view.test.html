@@ -75,6 +75,23 @@ test("stored view: grid, default list, and throwing storage", () => {
     assertEqual(readStoredView({ getItem: () => { throw new Error("blocked"); } }), "list");
 });
 
+const st = s => ({ status: s });
+
+test("describeProblems: mixed", () => {
+    assertEqual(
+        describeProblems([st("banned"), st("banned"), st("banned"), st("unknown"), st("legal")], new Array(5).fill({})),
+        "3 cartas banidas, 1 não encontrada e 1 outro problema."
+    );
+});
+
+test("describeProblems: single kind, singular", () => {
+    assertEqual(describeProblems([st("banned"), st("legal")], [{}]), "1 carta banida.");
+});
+
+test("describeProblems: none", () => {
+    assertEqual(describeProblems([st("legal")], []), "Nenhum problema encontrado.");
+});
+
 done();
 
 </script>

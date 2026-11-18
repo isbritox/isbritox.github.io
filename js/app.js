@@ -3547,9 +3547,7 @@ function renderResult(
 
         commanderData,
 
-        legalCount,
-
-        problemCount
+        legalCount
 
     } = data;
 
@@ -3580,10 +3578,13 @@ function renderResult(
             "Deck inválido";
 
         resultStatusTitle.textContent =
-            "Foram encontrados problemas.";
+            describeProblems(
+                analyzed,
+                problems
+            );
 
         resultStatusDescription.textContent =
-            "Revise as cartas destacadas abaixo.";
+            "";
 
     } else {
 
@@ -3598,10 +3599,13 @@ function renderResult(
             "Deck válido";
 
         resultStatusTitle.textContent =
-            "Seu deck está dentro das regras.";
+            describeProblems(
+                analyzed,
+                problems
+            );
 
         resultStatusDescription.textContent =
-            "Nenhum problema encontrado.";
+            "";
 
     }
 
@@ -3631,7 +3635,7 @@ function renderResult(
         legalCount;
 
     problemCards.textContent =
-        problemCount;
+        problems.length;
 
     /*
     =======================================================

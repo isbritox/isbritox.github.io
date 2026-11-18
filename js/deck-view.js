@@ -269,3 +269,100 @@ function readStoredView(
     }
 
 }
+
+
+/*
+===========================================================
+RESUMO DOS PROBLEMAS (linha do veredito)
+
+Conta cartas banidas e não encontradas entre as cartas
+analisadas; o resto da lista de problemas (estrutura,
+comandante, cópias) entra como "outro problema".
+Ex.: "3 cartas banidas, 1 não encontrada e 1 outro problema."
+===========================================================
+*/
+
+function describeProblems(
+    analyzed,
+    problems
+) {
+
+    if (!problems.length) {
+
+        return "Nenhum problema encontrado.";
+
+    }
+
+    const count =
+        status =>
+            analyzed.filter(
+                card =>
+                    card.status === status
+            ).length;
+
+    const banned =
+        count("banned");
+
+    const unknown =
+        count("unknown");
+
+    const other =
+        Math.max(
+            0,
+            problems.length - banned - unknown
+        );
+
+    const plural =
+        (
+            amount,
+            singular,
+            pluralForm
+        ) =>
+            `${amount} ${amount === 1 ? singular : pluralForm}`;
+
+    const parts = [];
+
+    if (banned) {
+
+        parts.push(
+            plural(
+                banned,
+                "carta banida",
+                "cartas banidas"
+            )
+        );
+
+    }
+
+    if (unknown) {
+
+        parts.push(
+            plural(
+                unknown,
+                "não encontrada",
+                "não encontradas"
+            )
+        );
+
+    }
+
+    if (other) {
+
+        parts.push(
+            plural(
+                other,
+                "outro problema",
+                "outros problemas"
+            )
+        );
+
+    }
+
+    const sentence =
+        parts.length > 1
+            ? `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`
+            : parts[0];
+
+    return `${sentence}.`;
+
+}
