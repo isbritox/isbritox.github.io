@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Testes: deck-view</title>
+</head>
+<body>
+
+<script src="harness.js"></script>
+<script src="../js/deck-view.js"></script>
+<script>
+
+const card = (status, type_line, extra = {}) => ({
+    status,
+    quantity: 1,
+    inputName: "X",
+    scryfall: type_line === null ? null : { name: "X", type_line },
+    ...extra
+});
+
+test("status labels", () => {
+    assertEqual(getStatusMeta("banned").label, "Banida");
+    assertEqual(getStatusMeta("commanderOnly").label, "Só no deck");
+    assertEqual(getStatusMeta("whatever").label, "Não encontrada");
+});
+
+test("problem cards are banned and unknown only", () => {
+    assertEqual(
+        ["banned", "unknown", "commanderOnly", "legal"].map(s => isProblemCard({ status: s })),
+        [true, true, false, false]
+    );
+});
+
+test("dfc without top-level type_line groups by front face", () => {
+    assertEqual(getCardGroup({ scryfall: { card_faces: [{ type_line: "Instant" }, { type_line: "Land" }] } }), "instant");
+    assertEqual(getCardGroup(card("legal", "Instant // Land")), "instant");
+});
+
+test("dryad arbor is a creature, artifact land is a land", () => {
+    assertEqual(getCardGroup(card("legal", "Land Creature — Forest Dryad")), "creature");
+    assertEqual(getCardGroup(card("legal", "Artifact Land")), "land");
+    assertEqual(getCardGroup(card("legal", "Artifact Creature — Golem")), "creature");
+});
+
+test("not found card goes to unknown group", () => {
+    assertEqual(getCardGroup(card("unknown", null)), "unknown");
+});
+
+test("buildCardGroups orders groups, sorts by status, counts copies, keeps index", () => {
+    const cards = [
+        card("legal", "Island"),
+        card("legal", "Basic Land — Island", { quantity: 3 }),
+        card("banned", "Artifact"),
+        card("legal", "Artifact"),
+        card("unknown", null)
+    ];
+    const groups = buildCardGroups(cards, "all");
+    assertEqual(groups.map(g => g.id), ["artifact", "land", "unknown"]);
+    assertEqual(groups[0].items.map(i => i.index), [2, 3]);
+    assertEqual(groups[1].copies, 4);
+});
+
+test("problems filter keeps only banned and unknown", () => {
+    const cards = [card("legal", "Instant"), card("banned", "Instant"), card("commanderOnly", "Creature")];
+    assertEqual(buildCardGroups(cards, "problems").map(g => g.items.map(i => i.index)), [[1]]);
+});
+
+test("non-numeric quantity counts as one copy", () => {
+    assertEqual(buildCardGroups([card("legal", "Sorcery", { quantity: "?" })], "all")[0].copies, 1);
+});
+
+test("stored view: grid, default list, and throwing storage", () => {
+    assertEqual(readStoredView({ getItem: () => "grid" }), "grid");
+    assertEqual(readStoredView({ getItem: () => null }), "list");
+    assertEqual(readStoredView({ getItem: () => { throw new Error("blocked"); } }), "list");
+});
+
+done();
+
+</script>
+</body>
+</html>
