@@ -12,25 +12,29 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROFILE="$(mktemp -d)"
 trap 'rm -rf "$PROFILE"' EXIT
 
-to_url() {
-    if command -v cygpath >/dev/null 2>&1; then
-        printf 'file:///%s' "$(cygpath -m "$1")"
-    else
-        printf 'file://%s' "$1"
-    fi
-}
-
-profile_path() {
+native_path() {
     if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi
 }
 
+to_url() {
+    path="$(native_path "$1")"
+    case "$path" in
+        /*) printf 'file://%s' "$path" ;;
+        *) printf 'file:///%s' "$path" ;;
+    esac
+}
+
+# O Chrome registra cada console.log como:
+#   [...:INFO:CONSOLE:12] "TEST PASS nome", source: file:///... (12)
+# Pegamos só o texto entre aspas e desfazemos o escape de aspas internas.
 OUT="$("$CHROME" --headless=new --disable-gpu \
-    --user-data-dir="$(profile_path "$PROFILE")" \
+    --user-data-dir="$(native_path "$PROFILE")" \
     --allow-file-access-from-files \
     --enable-logging=stderr --v=0 \
     --virtual-time-budget=8000 \
     --dump-dom "$(to_url "$ROOT/$PAGE")" 2>&1 >/dev/null \
-    | grep -oE '(TEST (PASS|FAIL)|TESTS DONE)[^"]*')"
+    | grep -E 'CONSOLE.*"(TEST (PASS|FAIL)|TESTS DONE)' \
+    | sed -E 's/^[^"]*"//; s/", source: .*$//; s/\\"/"/g')"
 
 printf '%s\n' "$OUT"
 

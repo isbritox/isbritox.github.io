@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Testes: interface</title>
+</head>
+<body>
+
+<iframe id="app" src="../index.html" style="width:1280px;height:900px;border:0"></iframe>
+
+<script src="harness.js"></script>
+<script src="fixtures.js"></script>
+<script>
+
+const frame = document.getElementById("app");
+
+let win;
+let doc;
+
+const $ = selector => doc.querySelector(selector);
+const $$ = selector => [...doc.querySelectorAll(selector)];
+
+/*
+Estado limpo para cada teste: resultado com as cartas
+de exemplo, filtro "Todas" e lista. View Transitions
+ficam desligadas: o tempo virtual do headless nunca
+executa o callback delas.
+*/
+
+function setup() {
+
+    doc.startViewTransition = undefined;
+
+    win.renderResult({
+        structure: { total: 7 },
+        analyzed: fixtureCards,
+        problems: fixtureProblems,
+        commanderData: null,
+        legalCount: 4,
+        problemCount: 2
+    });
+
+    $("#resultSection").classList.remove("hidden");
+
+    win.positionThumbs();
+
+    $('[data-filter="all"]').click();
+    $('[data-view="list"]').click();
+
+}
+
+function groupTitles() {
+
+    return $$(".card-group-title").map(
+        title => title.firstChild.textContent.trim()
+    );
+
+}
+
+test("page loads without errors", () => {
+    assertEqual(typeof win.renderCards, "function");
+    assertEqual($("#lineCounter").textContent.trim(), "0 linhas", "o fim de app.js deve ter rodado");
+});
+
+test("cards are grouped by type", () => {
+    setup();
+    assertEqual(groupTitles(), ["Criaturas", "Mágicas instantâneas", "Artefatos", "Terrenos", "Não encontradas"]);
+});
+
+test("view toggle switches list and grid", () => {
+    setup();
+    $('[data-view="grid"]').click();
+    assertEqual($("#cardsList").classList.contains("is-grid"), true);
+    assertEqual($('[data-view="grid"]').getAttribute("aria-pressed"), "true");
+    $('[data-view="list"]').click();
+    assertEqual($("#cardsList").classList.contains("is-list"), true);
+    assertEqual($('[data-view="grid"]').getAttribute("aria-pressed"), "false");
+});
+
+test("problems filter shows only problems, then resets on clean deck", () => {
+    setup();
+    $('[data-filter="problems"]').click();
+    assertEqual($$(".deck-card").length, 2);
+    win.renderCards(fixtureCards.filter(card => card.status === "legal"));
+    assertEqual($('[data-filter="problems"]').disabled, true);
+    assertEqual($('[data-filter="all"]').getAttribute("aria-pressed"), "true");
+    assertEqual($$(".deck-card").length > 0, true);
+});
+
+test("unknown card shows placeholder and viewer opens without image", () => {
+    setup();
+    $('[data-view="grid"]').click();
+    const placeholder = $(".deck-card.is-unknown .deck-card-placeholder");
+    assertEqual(placeholder.textContent.trim(), "Cartaquenaoexiste");
+    placeholder.closest(".deck-card").click();
+    assertEqual($("#cardViewer").open, true);
+    assertEqual($("#cardViewerImage").hasAttribute("src"), false);
+    $("#cardViewer").dispatchEvent(new Event("cancel", { cancelable: true }));
+    assertEqual($("#cardViewer").open, false);
+});
+
+test("theme toggle flips data-theme and persists", () => {
+    doc.startViewTransition = undefined;
+    const before = doc.documentElement.dataset.theme;
+    $("#themeToggle").click();
+    const after = doc.documentElement.dataset.theme;
+    assertEqual(after, before === "dark" ? "light" : "dark");
+    assertEqual(win.localStorage.getItem("dc_theme"), after);
+});
+
+test("segmented thumb is measured once results are visible", () => {
+    setup();
+    assertEqual($$(".segmented.has-thumb").length, 2);
+    assertEqual($(".segmented").style.getPropertyValue("--thumb-w") !== "", true);
+});
+
+test("toggles do not touch a live region", () => {
+    setup();
+    assertEqual($("#resultSection").hasAttribute("aria-live"), false);
+    assertEqual($$("#resultSection [aria-live]").map(el => el.id), ["resultStatus"]);
+});
+
+test("verdict icon strokes are drawable", () => {
+    setup();
+    const paths = $$("#resultStatusIcon svg path");
+    assertEqual(paths.length, 2, "o X tem dois traços");
+    assertEqual(paths.every(path => path.getAttribute("pathLength") === "1"), true);
+});
+
+frame.addEventListener("load", () => {
+    win = frame.contentWindow;
+    doc = frame.contentDocument;
+    done();
+});
+
+</script>
+</body>
+</html>
