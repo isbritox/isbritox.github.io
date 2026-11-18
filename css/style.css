@@ -57,6 +57,7 @@
     /* Vidro: superfície translúcida + desfoque + borda de luz */
     --glass: rgba(255, 255, 255, 0.58);
     --glass-strong: rgba(255, 255, 255, 0.76);
+    --popover-bg: rgba(255, 255, 255, 0.92);
     --glass-inner: rgba(255, 255, 255, 0.72);
     --glass-edge: rgba(255, 255, 255, 0.85);
     --glass-rim: rgba(0, 0, 0, 0.06);
@@ -133,6 +134,7 @@
 
     --glass: rgba(28, 28, 30, 0.5);
     --glass-strong: rgba(36, 36, 38, 0.72);
+    --popover-bg: rgba(44, 44, 46, 0.92);
     --glass-inner: rgba(255, 255, 255, 0.045);
     --glass-edge: rgba(255, 255, 255, 0.12);
     --glass-rim: rgba(255, 255, 255, 0.07);
@@ -567,7 +569,7 @@ kbd {
 
     padding: 6px;
 
-    background: var(--glass-strong);
+    background: var(--popover-bg);
     border: 1px solid var(--separator-soft);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-pop);
@@ -874,11 +876,6 @@ kbd {
     color: var(--red);
 }
 
-:root[data-theme="dark"] .stats-strip,
-:root[data-theme="dark"] .tile {
-    background: var(--glass);
-}
-
 
 /* ---------- Tiles ---------- */
 
@@ -907,10 +904,6 @@ kbd {
     background: var(--glass-inner);
     border-radius: var(--radius-lg);
     overflow: hidden;
-}
-
-:root[data-theme="dark"] .problems-list {
-    background: var(--glass-inner);
 }
 
 .problem-item {
@@ -1209,10 +1202,6 @@ kbd {
     border-radius: var(--radius-lg);
 }
 
-:root[data-theme="dark"] .cards-list.is-list .card-group-items {
-    background: var(--glass-inner);
-}
-
 .cards-list.is-list .deck-card {
     display: flex;
     align-items: center;
@@ -1484,10 +1473,6 @@ kbd {
     letter-spacing: -0.005em;
 }
 
-:root[data-theme="dark"] .globalfooter {
-    background: transparent;
-}
-
 .footer-inner {
     display: flex;
     align-items: center;
@@ -1505,148 +1490,6 @@ kbd {
 .footer-links a {
     color: var(--text);
 }
-
-
-/* =========================================================
-   RESPONSIVO
-========================================================= */
-
-@media (max-width: 900px) {
-    .composer {
-        grid-template-columns: 1fr;
-    }
-
-    .hero-title {
-        font-size: 56px;
-    }
-
-    .result-status-title {
-        font-size: 48px;
-    }
-
-    .result-status-subtitle {
-        font-size: 24px;
-    }
-
-    .stats-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        row-gap: 24px;
-    }
-
-    .stat:nth-child(3) {
-        border-left: 0;
-    }
-
-    .cards-list.is-list .card-group-items {
-        grid-template-columns: 1fr;
-    }
-
-    .cards-list.is-list .deck-card:nth-last-child(2):nth-child(odd) {
-        border-bottom: 1px solid var(--separator-soft);
-    }
-}
-
-@media (max-width: 640px) {
-    body {
-        font-size: 16px;
-    }
-
-    .banlist-badge {
-        display: none;
-    }
-
-    .hero {
-        padding: 56px 16px 40px;
-    }
-
-    .hero-title {
-        font-size: 40px;
-    }
-
-    .hero-lead {
-        font-size: 17px;
-    }
-
-    .result-status-title {
-        font-size: 40px;
-    }
-
-    .result-status-subtitle {
-        font-size: 21px;
-    }
-
-    .result-status-description {
-        font-size: 17px;
-    }
-
-    .composer {
-        border-radius: var(--radius-lg);
-    }
-
-    .composer-field,
-    .tile {
-        padding: 22px 18px;
-    }
-
-    .tile {
-        border-radius: var(--radius-lg);
-    }
-
-    .deck-textarea {
-        min-height: 280px;
-    }
-
-    .stats-strip {
-        padding: 22px 0;
-        border-radius: var(--radius-lg);
-    }
-
-    .stat {
-        padding: 0 18px;
-    }
-
-    .stat dd {
-        font-size: 32px;
-    }
-
-    .result-status {
-        padding: 40px 8px 36px;
-    }
-
-    .cards-toolbar {
-        align-items: stretch;
-    }
-
-    .toolbar-controls {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .cards-list.is-list .card-group-items {
-        padding: 0 14px;
-    }
-
-    .cards-list.is-grid .card-group-items {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 18px 12px;
-    }
-
-    .commander-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 16px;
-    }
-
-    .commander-card-info h4 {
-        font-size: 24px;
-    }
-
-    .footer-inner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
 
 
 /* =========================================================
@@ -1771,6 +1614,11 @@ kbd {
     box-shadow: none;
 }
 
+/* Contador legível sobre o indicador ativo (principalmente no escuro) */
+.segmented-option.is-active .segmented-count {
+    color: var(--text);
+}
+
 
 /* =========================================================
    VEREDITO: O ÍCONE É DESENHADO AO CHEGAR
@@ -1844,6 +1692,22 @@ kbd {
     transition-duration: 0.12s;
 }
 
+/* Skeleton enquanto a imagem da carta carrega: um brilho atravessa o espaço */
+.deck-card-art:has(img.is-loading)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, var(--hover) 45%, var(--glass-edge) 50%, var(--hover) 55%, transparent 70%);
+    background-size: 250% 100%;
+    animation: shimmer 1.4s var(--ease) infinite;
+}
+
+@keyframes shimmer {
+    from { background-position: 120% 0; }
+    to { background-position: -120% 0; }
+}
+
+
 
 /* =========================================================
    TOOLBAR DAS CARTAS: FIXA E DE VIDRO AO ROLAR UM DECK LONGO
@@ -1867,7 +1731,6 @@ kbd {
     backdrop-filter: var(--glass-blur);
     box-shadow: 0 0 0 1px var(--glass-rim), 0 10px 30px rgba(0, 0, 0, 0.08);
 }
-
 
 
 /* =========================================================
@@ -1925,6 +1788,21 @@ kbd {
     animation: none;
 }
 
+/* Durante a revelação circular do tema, as cores já chegam prontas:
+   sem isso o círculo mostraria cores ainda em transição. O ícone do
+   botão continua girando. */
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after,
+.theme-transition body {
+    transition: none !important;
+}
+
+.theme-transition #themeToggle svg {
+    transition: transform 0.5s var(--ease-out), opacity 0.25s var(--ease) !important;
+}
+
+
 
 /* =========================================================
    MOVIMENTO REDUZIDO
@@ -1953,6 +1831,11 @@ kbd {
         transform: none;
     }
 
+    .deck-card-art:has(img.is-loading)::after {
+        animation: none;
+        background: var(--hover);
+    }
+
     .cards-list.is-grid .deck-card:hover .deck-card-art,
     .commander-card-zoom:hover .commander-card-image,
     .pill-button:active {
@@ -1976,72 +1859,155 @@ kbd {
     to { opacity: 1; }
 }
 
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
 @media (max-width: 900px) {
+    .composer {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-title {
+        font-size: 56px;
+    }
+
+    .result-status-title {
+        font-size: 48px;
+    }
+
+    .result-status-subtitle {
+        font-size: 24px;
+    }
+
+    .stats-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 24px;
+    }
+
+    .stat:nth-child(3) {
+        border-left: 0;
+    }
+
+    .cards-list.is-list .card-group-items {
+        grid-template-columns: 1fr;
+    }
+
+    .cards-list.is-list .deck-card:nth-last-child(2):nth-child(odd) {
+        border-bottom: 1px solid var(--separator-soft);
+    }
+
     .composer-deck {
         border-left: 0;
         border-top: 1px solid var(--glass-rim);
     }
 }
 
-/* Popover precisa ser legível mesmo sem nada atrás para desfocar */
-.commander-autocomplete {
-    background: var(--glass-strong);
-}
-
-:root[data-theme="dark"] .commander-autocomplete {
-    background: rgba(44, 44, 46, 0.92);
-}
-
-:root:not([data-theme="dark"]) .commander-autocomplete {
-    background: rgba(255, 255, 255, 0.92);
-}
-
 @media (max-width: 640px) {
+    body {
+        font-size: 16px;
+    }
+
+    .banlist-badge {
+        display: none;
+    }
+
+    .hero {
+        padding: 56px 16px 40px;
+    }
+
+    .hero-title {
+        font-size: 40px;
+    }
+
+    .hero-lead {
+        font-size: 17px;
+    }
+
+    .result-status-title {
+        font-size: 40px;
+    }
+
+    .result-status-subtitle {
+        font-size: 21px;
+    }
+
+    .result-status-description {
+        font-size: 17px;
+    }
+
+    .composer {
+        border-radius: var(--radius-lg);
+    }
+
+    .composer-field,
+    .tile {
+        padding: 22px 18px;
+    }
+
+    .tile {
+        border-radius: var(--radius-lg);
+    }
+
+    .deck-textarea {
+        min-height: 280px;
+    }
+
+    .stats-strip {
+        padding: 22px 0;
+        border-radius: var(--radius-lg);
+    }
+
+    .stat {
+        padding: 0 18px;
+    }
+
+    .stat dd {
+        font-size: 32px;
+    }
+
+    .result-status {
+        padding: 40px 8px 36px;
+    }
+
+    .cards-toolbar {
+        align-items: stretch;
+    }
+
+    .toolbar-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cards-list.is-list .card-group-items {
+        padding: 0 14px;
+    }
+
+    .cards-list.is-grid .card-group-items {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 18px 12px;
+    }
+
+    .commander-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .commander-card-info h4 {
+        font-size: 24px;
+    }
+
+    .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     /* No celular a legenda quebra em várias linhas: o toolbar não gruda */
     .cards-toolbar {
         position: static;
         margin: 0 0 18px;
         padding: 0;
     }
-}
-
-/* Skeleton enquanto a imagem da carta carrega: um brilho atravessa o espaço */
-.deck-card-art:has(img.is-loading)::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(105deg, transparent 30%, var(--hover) 45%, var(--glass-edge) 50%, var(--hover) 55%, transparent 70%);
-    background-size: 250% 100%;
-    animation: shimmer 1.4s var(--ease) infinite;
-}
-
-@keyframes shimmer {
-    from { background-position: 120% 0; }
-    to { background-position: -120% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .deck-card-art:has(img.is-loading)::after {
-        animation: none;
-        background: var(--hover);
-    }
-}
-
-/* Contador legível sobre o indicador ativo (principalmente no escuro) */
-.segmented-option.is-active .segmented-count {
-    color: var(--text);
-}
-
-/* Durante a revelação circular do tema, as cores já chegam prontas:
-   sem isso o círculo mostraria cores ainda em transição. O ícone do
-   botão continua girando. */
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after,
-.theme-transition body {
-    transition: none !important;
-}
-
-.theme-transition #themeToggle svg {
-    transition: transform 0.5s var(--ease-out), opacity 0.25s var(--ease) !important;
 }
