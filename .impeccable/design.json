@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-18T12:00:00-03:00",
+  "title": "Design System: Duel Commander Validator",
+  "extensions": {
+    "colorMeta": {
+      "accent": { "role": "primary", "displayName": "Action Blue", "canonical": "#0071e3", "tonalRamp": ["#00224a", "#003a7a", "#0052ab", "#0071e3", "#2a8cf0", "#66adf5", "#a6cffa", "#e3f0fd"] },
+      "ground-light": { "role": "neutral", "displayName": "Apple Paper", "canonical": "#f5f5f7", "tonalRamp": ["#1d1d1f", "#424245", "#6e6e73", "#86868b", "#a1a1a6", "#d2d2d7", "#e8e8ed", "#f5f5f7"] },
+      "ground-dark": { "role": "neutral", "displayName": "Night", "canonical": "#000000", "tonalRamp": ["#000000", "#101012", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#48484a", "#636366", "#8e8e93"] },
+      "green-light": { "role": "semantic", "displayName": "Legal Green", "canonical": "#248a3d", "tonalRamp": ["#0b2b13", "#124a20", "#1b6a2e", "#248a3d", "#30d158", "#6fe08c", "#aeedbf", "#e6f9eb"] },
+      "red-light": { "role": "semantic", "displayName": "Banned Red", "canonical": "#d70015", "tonalRamp": ["#3d0006", "#6b000b", "#a10010", "#d70015", "#ff453a", "#ff7d75", "#ffb5b0", "#ffe9e7"] },
+      "orange-light": { "role": "semantic", "displayName": "Commander-Only Orange", "canonical": "#b25000", "tonalRamp": ["#331700", "#5c2900", "#874000", "#b25000", "#ff9f0a", "#ffbb52", "#ffd699", "#fff3e0"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headline and the verdict, never anything else." },
+      "headline": { "displayName": "Headline", "purpose": "The one-line verdict summary." },
+      "title": { "displayName": "Title", "purpose": "Field labels and tile titles." },
+      "body": { "displayName": "Body", "purpose": "Running text and controls." },
+      "caption": { "displayName": "Caption", "purpose": "Hints, legend, badges, counts." },
+      "mono": { "displayName": "Decklist Mono", "purpose": "Only the decklist textarea." }
+    },
+    "shadows": [
+      { "name": "glass-light", "value": "0 1px 0 rgba(255,255,255,0.9) inset, 0 20px 50px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03)", "purpose": "Glass tiles in light mode: inner top highlight plus soft lift." },
+      { "name": "glass-dark", "value": "0 1px 0 rgba(255,255,255,0.08) inset, 0 30px 80px rgba(0,0,0,0.5)", "purpose": "Glass tiles in dark mode." },
+      { "name": "card", "value": "0 6px 20px rgba(0,0,0,0.14)", "purpose": "Card art in the grid (dark: 0 8px 24px rgba(0,0,0,0.5))." },
+      { "name": "pop", "value": "0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)", "purpose": "Autocomplete popover and viewer dialog." }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(0.25, 0.1, 0.25, 1)", "purpose": "Routine color and state changes." },
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Arrivals: thumb slide, image blur-in, verdict pop, morphs." },
+      { "name": "theme-reveal", "value": "650ms circle clip-path from the toggle", "purpose": "Focal moment: switching light/dark." },
+      { "name": "view-switch", "value": "350ms view transition (deck-cards)", "purpose": "List/grid and filter changes; toolbar stays live." },
+      { "name": "card-zoom", "value": "420ms shared-element view transition", "purpose": "Grid card art into the viewer and back." },
+      { "name": "thumb", "value": "320ms transform/width", "purpose": "Segmented control indicator." }
+    ],
+    "breakpoints": [
+      { "name": "tablet", "value": "900px" },
+      { "name": "phone", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Pill",
+      "kind": "button",
+      "refersTo": "button-primary-large",
+      "description": "The single main action, 'Validar deck'.",
+      "html": "<button class=\"ds-pill\">Validar deck</button>",
+      "css": ".ds-pill { display:inline-flex; align-items:center; justify-content:center; min-height:56px; min-width:220px; padding:0 32px; border:0; border-radius:980px; background:#0071e3; color:#fff; font:400 19px/1 -apple-system, BlinkMacSystemFont, Inter, sans-serif; letter-spacing:-0.022em; cursor:pointer; transition:background-color .2s cubic-bezier(.25,.1,.25,1), transform .2s; } .ds-pill:hover { background:#0077ed; } .ds-pill:active { transform:scale(.98); } .ds-pill:focus-visible { outline:3px solid rgba(0,113,227,.32); outline-offset:2px; }"
+    },
+    {
+      "name": "Secondary Pill",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined pill for the follow-up action, 'Validar outro deck'.",
+      "html": "<button class=\"ds-pill-secondary\">Validar outro deck</button>",
+      "css": ".ds-pill-secondary { min-height:44px; padding:0 22px; border:1px solid #0066cc; border-radius:980px; background:transparent; color:#0066cc; font:400 17px/1 -apple-system, BlinkMacSystemFont, Inter, sans-serif; cursor:pointer; transition:background-color .2s, color .2s; } .ds-pill-secondary:hover { background:#0071e3; border-color:#0071e3; color:#fff; } .ds-pill-secondary:focus-visible { outline:3px solid rgba(0,113,227,.32); outline-offset:2px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "custom",
+      "refersTo": "segmented",
+      "description": "iOS-style filter and view switch with a sliding thumb.",
+      "html": "<div class=\"ds-seg\"><span class=\"ds-seg-thumb\"></span><button class=\"ds-seg-opt is-active\">Todas <span>12</span></button><button class=\"ds-seg-opt\">Com problema <span>4</span></button></div>",
+      "css": ".ds-seg { position:relative; isolation:isolate; display:inline-flex; gap:2px; padding:2px; border-radius:9px; background:rgba(0,0,0,.06); font:500 13px -apple-system, BlinkMacSystemFont, Inter, sans-serif; } .ds-seg-thumb { position:absolute; z-index:-1; top:2px; bottom:2px; left:2px; width:72px; border-radius:7px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.12); transition:transform .32s cubic-bezier(.16,1,.3,1), width .32s cubic-bezier(.16,1,.3,1); } .ds-seg-opt { min-height:30px; padding:0 12px; border:0; border-radius:7px; background:transparent; color:#1d1d1f; font:inherit; cursor:pointer; } .ds-seg-opt span { color:#6e6e73; } .ds-seg-opt.is-active span { color:#1d1d1f; } .ds-seg-opt:hover:not(.is-active) { background:rgba(0,0,0,.04); } .ds-seg-opt:focus-visible { outline:3px solid rgba(0,113,227,.32); }"
+    },
+    {
+      "name": "Glass Tile",
+      "kind": "card",
+      "refersTo": "glass-tile-light",
+      "description": "Frosted container for composer, stats, problems and cards.",
+      "html": "<div class=\"ds-glass-bg\"><section class=\"ds-glass\"><h3>Problemas encontrados</h3><p>Mana Crypt — Esta carta é banida no Duel Commander.</p></section></div>",
+      "css": ".ds-glass-bg { padding:32px; background:radial-gradient(closest-side, rgba(0,113,227,.08), transparent) , #f5f5f7; } .ds-glass { padding:28px; border-radius:28px; background:rgba(255,255,255,.72); -webkit-backdrop-filter:saturate(180%) blur(28px); backdrop-filter:saturate(180%) blur(28px); border:1px solid rgba(0,0,0,.06); box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 20px 50px rgba(0,0,0,.06); font-family:-apple-system, BlinkMacSystemFont, Inter, sans-serif; color:#1d1d1f; } .ds-glass h3 { margin:0 0 8px; font-size:24px; font-weight:600; letter-spacing:-0.015em; } .ds-glass p { margin:0; color:#6e6e73; font-size:15px; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "text-input",
+      "description": "Commander field with leading search icon.",
+      "html": "<label class=\"ds-input\"><svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/><path d=\"m16 16 4.5 4.5\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg><input placeholder=\"Ex.: Atraxa, Grand Unifier\"></label>",
+      "css": ".ds-input { position:relative; display:block; width:320px; } .ds-input svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#6e6e73; } .ds-input input { width:100%; box-sizing:border-box; height:48px; padding:0 16px 0 40px; border:1px solid #d2d2d7; border-radius:12px; background:rgba(255,255,255,.86); font:16px -apple-system, BlinkMacSystemFont, Inter, sans-serif; color:#1d1d1f; outline:none; caret-color:#0071e3; transition:border-color .2s, box-shadow .2s; } .ds-input input:focus { border-color:#0071e3; box-shadow:0 0 0 4px rgba(0,113,227,.32); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Card state pill; the only place semantic color appears.",
+      "html": "<span class=\"ds-badge ds-legal\">Legal</span> <span class=\"ds-badge ds-banned\">Banida</span> <span class=\"ds-badge ds-cmd\">Só no deck</span> <span class=\"ds-badge ds-unknown\">Não encontrada</span>",
+      "css": ".ds-badge { display:inline-flex; padding:3px 9px; border-radius:980px; font:500 12px -apple-system, BlinkMacSystemFont, Inter, sans-serif; } .ds-legal { color:#248a3d; background:rgba(52,199,89,.12); } .ds-banned { color:#d70015; background:rgba(255,59,48,.1); } .ds-cmd { color:#b25000; background:rgba(255,149,0,.14); } .ds-unknown { color:#6e6e73; background:rgba(0,0,0,.06); }"
+    },
+    {
+      "name": "Grid Deck Card",
+      "kind": "custom",
+      "refersTo": "deck-card",
+      "description": "Card art tile in the type-grouped grid; banned cards get a crisp red ring.",
+      "html": "<button class=\"ds-deck-card is-banned\"><span class=\"ds-art\"><span class=\"ds-qty\">2x</span></span><span class=\"ds-name\">Mana Crypt</span></button>",
+      "css": ".ds-deck-card { display:flex; flex-direction:column; gap:10px; width:150px; padding:0; border:0; background:none; text-align:left; cursor:pointer; font:500 14px -apple-system, BlinkMacSystemFont, Inter, sans-serif; color:#1d1d1f; } .ds-art { position:relative; display:block; aspect-ratio:488/680; border-radius:4.8%/3.5%; background:linear-gradient(160deg,#3a3a3c,#1c1c1e); box-shadow:0 6px 20px rgba(0,0,0,.14); transition:transform .35s cubic-bezier(.25,.1,.25,1); } .ds-deck-card:hover .ds-art { transform:translateY(-4px) scale(1.02); } .ds-deck-card.is-banned .ds-art { box-shadow:0 0 0 3px #d70015, 0 6px 20px rgba(0,0,0,.14); } .ds-qty { position:absolute; top:8px; left:8px; padding:2px 8px; border-radius:980px; background:rgba(0,0,0,.78); color:#fff; font-size:12px; font-weight:600; } .ds-deck-card:focus-visible { outline:3px solid rgba(0,113,227,.32); outline-offset:4px; border-radius:8px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "An Apple product page that happens to be a working tool",
+    "overview": "The verdict is the headline: after validation, 'Deck válido' or 'Deck inválido' is set at hero scale with one specific summary line. The material is frosted glass over a single static field of soft blue light; light mode is neutral #f5f5f7 with white glass, dark mode is black with dark glass. One action blue; green, red and orange only mark card state.",
+    "keyCharacteristics": [
+      "Frosted 52px nav, two-tone 80px headline, composer above the fold, one blue pill",
+      "Glass tiles with hairline rims over one static ambient light",
+      "iOS segmented controls with a sliding thumb",
+      "Cards grouped by type in list and grid",
+      "Motion explains state: theme reveal, card morph, drawn verdict icon"
+    ],
+    "rules": [
+      { "name": "The One Blue Rule", "body": "Blue means you can act here; it never marks state or decoration.", "section": "colors" },
+      { "name": "The One Light Rule", "body": "One ambient light, static. No second hue, no drifting gradients under glass.", "section": "elevation" },
+      { "name": "The No Glow Rule", "body": "Banned cards get a crisp 2px red ring with a neutral shadow, never a colored bloom.", "section": "colors" },
+      { "name": "The Verdict Rule", "body": "Only the hero headline and the verdict use display size.", "section": "typography" }
+    ],
+    "dos": [
+      "Do keep the verdict the largest thing on the results screen.",
+      "Do give every count a unit that matches what it counts.",
+      "Do keep the ambient light static and singular.",
+      "Do theme selection, caret, scrollbar and focus ring from the palette.",
+      "Do escape every Scryfall or user string before innerHTML."
+    ],
+    "donts": [
+      "Don't add colored glows, gradient text, purple fields or neon accents.",
+      "Don't put an eyebrow above a heading or number the sections.",
+      "Don't use emoji or Unicode glyphs as icons.",
+      "Don't make the whole results section a live region.",
+      "Don't animate anything that sits under backdrop-filter."
+    ]
+  }
+}
